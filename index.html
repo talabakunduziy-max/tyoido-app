@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kundalik Vazifalar (To-Do)</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; padding-top: 50px; }
+        .container { background: white; padding: 20px 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #333; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; }
+        button { padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #218838; }
+        ul { list-style-type: none; padding: 0; }
+        li { background: #fff; border-bottom: 1px solid #eee; padding: 10px; display: flex; justify-content: space-between; align-items: center; }
+        li.completed span { text-decoration: line-through; color: #888; }
+        .delete-btn { background-color: #dc3545; padding: 5px 10px; font-size: 14px; }
+        .delete-btn:hover { background-color: #c82333; }
+        span { cursor: pointer; flex: 1; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Vazifalar ro'yxati</h2>
+    <div class="input-group">
+        <input type="text" id="taskInput" placeholder="Yangi vazifa yozing...">
+        <button onclick="addTask()">Qo'shish</button>
+    </div>
+    <ul id="taskList"></ul>
+</div>
+
+<script>
+    const taskInput = document.getElementById('taskInput');
+    const taskList = document.getElementById('taskList');
+
+    // Sahifa yuklanganda saqlangan vazifalarni chiqarish
+    document.addEventListener('DOMContentLoaded', loadTasks);
+
+    function addTask() {
+        const text = taskInput.value.trim();
+        if (text === '') return;
+
+        const task = { id: Date.now(), text: text, completed: false };
+        saveTask(task);
+        renderTask(task);
+        taskInput.value = '';
+    }
+
+    function renderTask(task) {
+        const li = document.createElement('li');
+        if (task.completed) li.classList.add('completed');
+        li.setAttribute('data-id', task.id);
+
+        li.innerHTML = `
+            <span onclick="toggleTask(${task.id})">${task.text}</span>
+            <button class="delete-btn" onclick="deleteTask(${task.id})">O'chirish</button>
+        `;
+        taskList.appendChild(li);
+    }
+
+    function toggleTask(id) {
+        let tasks = getTasks();
+        tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        refreshList();
+    }
+
+    function deleteTask(id) {
+        let tasks = getTasks().filter(t => t.id !== id);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        refreshList();
+    }
+
+    function saveTask(task) {
+        const tasks = getTasks();
+        tasks.push(task);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    function getTasks() {
+        return JSON.parse(localStorage.getItem('tasks')) || [];
+    }
+
+    function loadTasks() {
+        getTasks().forEach(renderTask);
+    }
+
+    function refreshList() {
+        taskList.innerHTML = '';
+        loadTasks();
+    }
+
+    // Enter tugmasi bosilganda ham qo'shish
+    taskInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') addTask();
+    });
+</script>
+
+</body>
+</html>
